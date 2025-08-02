@@ -22,9 +22,7 @@
                 <p class="text-sm text-gray-500">Rejections</p>
                 <p class="text-2xl font-bold text-red-500 mt-2">{{ $stats['rejected'] }}</p>
             </div>
-
         </div>
-
 
         <!-- Weekly Motivation -->
         @if($thisWeekCount > 0)
@@ -39,15 +37,14 @@
             </div>
         @endif
 
-
-        <!-- 📅 Application Heatmap (GitHub Style) -->
+        <!-- Application Heatmap -->
         <div class="bg-white rounded shadow p-6 mb-8">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-lg font-semibold text-gray-800">Application Activity ({{ $selectedYear }})</h2>
 
                 <!-- Year Selector -->
                 <form method="GET" action="{{ route('dashboard') }}">
-                    <select  name="year" onchange="this.form.submit()"
+                    <select name="year" onchange="this.form.submit()"
                             class="border border-gray-300 rounded px-2 py-1 text-sm text-gray-700 w-20">
                         @foreach($availableYears as $year)
                             <option value="{{ $year }}" @selected($selectedYear == $year)>{{ $year }}</option>
@@ -92,61 +89,72 @@
                     $weeks[] = $week;
                 }
 
-                                   $monthLabels = [];
-                    $seenMonths = [];
+                $monthLabels = [];
+                $seenMonths = [];
 
-                    foreach ($weeks as $i => $week) {
-                        $label = $week[0]['month'];
-                        if (!in_array($label, $seenMonths)) {
-                            $monthLabels[$i] = $label;
-                            $seenMonths[] = $label;
-                        } else {
-                            $monthLabels[$i] = '';
-                        }
+                foreach ($weeks as $i => $week) {
+                    $label = $week[0]['month'];
+                    if (!in_array($label, $seenMonths)) {
+                        $monthLabels[$i] = $label;
+                        $seenMonths[] = $label;
+                    } else {
+                        $monthLabels[$i] = '';
                     }
-
+                }
             @endphp
 
-            <div class="overflow-x-auto">
-                <!-- Month Labels -->
-                <div class="flex ml-8 mb-1 space-x-[2px] text-xs text-gray-500">
-                    @foreach ($monthLabels as $label)
-                        <div class="w-6 text-center">{{ $label }}</div>
-                    @endforeach
-                </div>
+            <div class="overflow-x-auto pb-2">
+                <div class="inline-block min-w-max space-y-1">
 
-                <!-- Heatmap Grid -->
-                <div class="flex">
-                    <!-- Day Labels (Mon-Sun) -->
-                    <div class="flex flex-col mr-2 text-xs text-gray-400 space-y-[2px] mt-[12px]">
-                        @foreach(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as $label)
-                            <div class="h-6 leading-6">{{ $label }}</div>
+                    <!-- Month Labels -->
+                    <div class="grid grid-flow-col auto-cols-min gap-[3px] ml-8 text-xs text-gray-500">
+                        @foreach ($monthLabels as $label)
+                            <div class="text-center w-4 sm:w-5">{{ $label }}</div>
                         @endforeach
                     </div>
 
-                    <!-- Cells -->
-                    <div class="flex space-x-[2px]">
-                        @foreach ($weeks as $week)
-                            <div class="flex flex-col space-y-[2px]">
-                                @foreach ($week as $cell)
-                                    <div class="w-6 h-6 {{ $cell['color'] }} rounded-sm"
-                                         title="{{ $cell['date'] }}: {{ $cell['count'] }} application{{ $cell['count'] === 1 ? '' : 's' }}">
-                                    </div>
-                                @endforeach
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
+                    <!-- Grid Layout -->
+                    <div class="grid grid-cols-[auto_1fr] gap-x-2">
 
-                <!-- Legend -->
-                <div class="flex items-center justify-end mt-4 text-xs text-gray-500 space-x-1">
-                    <span>Less</span>
-                    <div class="w-4 h-4 bg-gray-200 rounded-sm"></div>
-                    <div class="w-4 h-4 bg-green-100 rounded-sm"></div>
-                    <div class="w-4 h-4 bg-green-300 rounded-sm"></div>
-                    <div class="w-4 h-4 bg-green-500 rounded-sm"></div>
-                    <div class="w-4 h-4 bg-green-700 rounded-sm"></div>
-                    <span>More</span>
+                        <!-- Day Labels (Mon, Wed, Fri) spaced evenly over 7 rows -->
+                        <div class="grid grid-rows-7 gap-[3px] text-xs text-gray-400 mt-1">
+                            @for ($i = 0; $i < 7; $i++)
+                                <div class="h-4 leading-4">
+                                    @php
+                                        $labels = [1 => 'Mon', 3 => 'Wed', 5 => 'Fri'];
+                                    @endphp
+                                    {{ $labels[$i] ?? '' }}
+                                </div>
+                            @endfor
+                        </div>
+
+
+                        <!-- Heatmap Cells -->
+                        <div class="grid grid-flow-col auto-cols-min gap-[3px]">
+                            @foreach ($weeks as $week)
+                                <div class="grid grid-rows-7 gap-[3px]">
+                                    @foreach ($week as $i => $cell)
+                                        <div class="w-4 h-4 sm:w-5 sm:h-5 {{ $cell['color'] }} rounded-sm"
+                                             title="{{ $cell['date'] }}: {{ $cell['count'] }} application{{ $cell['count'] === 1 ? '' : 's' }}"
+                                             aria-label="{{ $cell['date'] }}: {{ $cell['count'] }} applications"
+                                             role="img">
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <!-- Legend -->
+                    <div class="flex items-center justify-end mt-4 text-xs text-gray-500 space-x-1">
+                        <span>Less</span>
+                        <div class="w-4 h-4 bg-gray-200 rounded-sm"></div>
+                        <div class="w-4 h-4 bg-green-100 rounded-sm"></div>
+                        <div class="w-4 h-4 bg-green-300 rounded-sm"></div>
+                        <div class="w-4 h-4 bg-green-500 rounded-sm"></div>
+                        <div class="w-4 h-4 bg-green-700 rounded-sm"></div>
+                        <span>More</span>
+                    </div>
                 </div>
             </div>
         </div>
