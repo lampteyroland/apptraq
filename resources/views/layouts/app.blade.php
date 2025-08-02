@@ -10,17 +10,21 @@
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-    <!-- Optional: Hide x-cloak elements until Alpine is ready -->
+    <!-- Hide [x-cloak] until Alpine is ready -->
     <style>[x-cloak] { display: none !important; }</style>
 </head>
-<body x-data="{ sidebarOpen: false }" class="bg-gray-100 text-gray-800">
+<body x-data="{ sidebarOpen: window.innerWidth >= 640 }" class="bg-gray-100 text-gray-800">
 
 <div class="min-h-screen flex">
 
     <!-- Sidebar (mobile + desktop) -->
     <aside
         x-cloak
-        :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+        x-init="$watch('sidebarOpen', value => { if (window.innerWidth >= 640) sidebarOpen = true })"
+        :class="{
+            'translate-x-0': sidebarOpen,
+            '-translate-x-full': !sidebarOpen
+        }"
         class="fixed z-50 inset-y-0 left-0 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out sm:relative sm:translate-x-0 sm:z-auto sm:flex"
     >
         <div class="flex flex-col justify-between h-full">
@@ -61,9 +65,12 @@
     </aside>
 
     <!-- Mobile overlay -->
-    <div x-show="sidebarOpen" @click="sidebarOpen = false"
-         class="fixed inset-0 bg-black bg-opacity-50 z-40 sm:hidden"
-         x-cloak></div>
+    <div
+        x-show="sidebarOpen"
+        @click="sidebarOpen = false"
+        x-cloak
+        class="fixed inset-0 bg-black bg-opacity-50 z-40 sm:hidden"
+    ></div>
 
     <!-- Main content -->
     <div class="flex-1 flex flex-col w-full">
